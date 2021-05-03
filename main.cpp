@@ -126,7 +126,7 @@ class Grid{
             bucket->erase();
         }
         vector<Point> removeGridPointsFromBucket(){
-            // Remove grid points from this bucket and assign the rest to the existed bucket
+            // Remove grid points from this bucket and assign the rest to the existed bucket and return grid Points
             vector<Point> gridPoints;
             vector<Point> bucketPoints(this->bucket->readBucket()),newBucketPoints;
 
