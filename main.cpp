@@ -30,6 +30,7 @@ class Bucket{
         Bucket(int &no){
             filename = "bucket"+to_string(no)+".txt";
             no++;
+            size=0;
         }
         
         void insert(Point p){
@@ -125,15 +126,19 @@ class Grid{
             bucket->erase();
         }
         vector<Point> removeGridPointsFromBucket(){
-            vector<Point> gridPoints(readGridsPointInBucket());
+            // Remove grid points from this bucket and assign the rest to the existed bucket
+            vector<Point> gridPoints;
             vector<Point> bucketPoints(this->bucket->readBucket()),newBucketPoints;
 
-            for(Point b : bucketPoints){
-                bool present = false;
-                for(Point g : gridPoints){
-                    if(g.id==b.id)present=true;
+            for(Point p : bucketPoints){
+                if(!this->is_present(p)){
+                    newBucketPoints.push_back(p);
+                    cout<<"Non Grid point "<<p.id<<' '<<p.x<<' '<<p.y<<'\n';
                 }
-                if(present)newBucketPoints.push_back(b);
+                else{
+                    gridPoints.push_back(p);
+                    cout<<"Grid point "<<p.id<<' '<<p.x<<' '<<p.y<<'\n';
+                }
             }
             erase();
             this->bucket->insert(newBucketPoints);
@@ -402,9 +407,8 @@ void insert(Point p,GridList* gridList){
         cout<<"searching failed\n";
         return;
     }
-
-    cout<<"Grid Id:"<<node->grid->id<<" Grid Size:"<<node->grid->size<<" Bucket Size:"<<node->grid->bucket->size<<'\n';
     node->grid->insert(p);
+    cout<<"Grid Id:"<<node->grid->id<<" Grid Size:"<<node->grid->size<<" Bucket Size:"<<node->grid->bucket->size<<'\n';
     //checking conditions
     // 1. Grid Overflow
     if(node->grid->size>BUCKET_SIZE){
@@ -435,12 +439,14 @@ void insert(Point p,GridList* gridList){
         2. Bucket Overflow
         2.1 Resolve, try to remove bucket sharing
         */
+        cout<<"Bucket sharing\n";
         Bucket *bucket = new Bucket(FILE_ID);
         vector<Point> gridPoints(node->grid->removeGridPointsFromBucket());
         node->grid->bucket = bucket;
         for(Point t:gridPoints){
-            node->grid->bucket->insert(t);
+            node->grid->insert(t);
         }
+        cout<<"Done bucket sharing\n";
         gridList->display();
     }
 }
