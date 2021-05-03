@@ -28,7 +28,7 @@ class Bucket{
         Bucket(){}
         ~Bucket(){}
         Bucket(int &no){
-            filename = "bucket"+to_string(no)+".txt";
+            filename = "./buckets/bucket"+to_string(no)+".txt";
             no++;
             size=0;
         }
@@ -95,14 +95,6 @@ class Grid{
             id=_id;
             _id++;
         }
-        // Grid(int x1,int x2,int y1,int y2,Bucket* _bucket,Point p){
-        //     x_min=x1;
-        //     x_max=x2;
-        //     y_min=y1;
-        //     y_max=y2;
-        //     bucket=_bucket;
-        //     points.push_back(p);
-        // }
         bool is_present(Point p){
             if (p.x > x_min and p.x <= x_max and p.y > y_min and p.y <= y_max)
                 return true;
@@ -133,16 +125,28 @@ class Grid{
             for(Point p : bucketPoints){
                 if(!this->is_present(p)){
                     newBucketPoints.push_back(p);
-                    cout<<"Non Grid point "<<p.id<<' '<<p.x<<' '<<p.y<<'\n';
+                    // cout<<"Non Grid point "<<p.id<<' '<<p.x<<' '<<p.y<<'\n';
                 }
                 else{
                     gridPoints.push_back(p);
-                    cout<<"Grid point "<<p.id<<' '<<p.x<<' '<<p.y<<'\n';
+                    // cout<<"Grid point "<<p.id<<' '<<p.x<<' '<<p.y<<'\n';
                 }
             }
             erase();
             this->bucket->insert(newBucketPoints);
             return gridPoints;
+        }
+        bool is_overlapping(int x_min,int x_max,int y_min,int y_max){
+            if(this->x_min == this->x_max || this->y_max == this->y_min || x_min==x_max || y_min==y_max)
+            return false;
+
+            if(this->x_min >= x_max || x_min >= this->x_max)
+            return false;
+
+            if(this->y_max <= y_min || y_max <= this->y_min)
+            return false;
+
+            return true;
         }
 };
 
@@ -164,14 +168,13 @@ public:
     GridList();
     ~GridList();
     void insert_front(Grid*);
-    // int delete_front();
-    // int delete_back();
     bool is_empty();
     void display();
     int length();
     Node* search(Point);
     void splitGrid(int,string,Node*,bool);
     void splitList(int,string);
+    vector<Point> rangeQuery(int,int,int,int);
     Node* head;
     Node* tail;
     int size;
@@ -201,63 +204,16 @@ void GridList::insert_front(Grid* value)
     size++;
 }
 
-/*
-// int GridList::delete_front()
-// {
-//     if (!is_empty())
-//     {
-//         Node* temp = head;
-//         if (head == tail)
-//         {
-//             tail = NULL;
-//         }
-//         int delValue = temp->data;
-//         head = head->next;
- 
-//         delete temp;
- 
-//         size--;
- 
-//         return delValue;
- 
-//     }
-//     return 0;
-// }
- 
-// int GridList::delete_back()
-// {
-//     if (!is_empty())
-//     {
-//         Node* temp = tail;
-//         if (head == tail)
-//         {
-//             head = NULL;
-//         }
-//         int delValue = temp->data;
-//         tail->next = NULL;
-//         tail = tail->prev;
- 
-//         delete temp;
- 
-//         size--;
- 
-//         return delValue;
- 
-//     }
-//     return 0;
-// }
-
-*/
-
 void GridList::display()
 {
-    Node* temp = head;
-    int i=0;
+    Node* temp = head;   
+    cout<<"====================================== Displaying Grids ===========================\n"; 
     while (temp != NULL)
     {
         cout<<"Grid:"<<temp->grid->id<<'\n';
-        cout<<"Grid size:"<<temp->grid->size<<'\n';
-        cout<<temp->grid->x_min<<' '<<temp->grid->x_max<<' '<<temp->grid->y_min<<' '<<temp->grid->y_max<<' '<<'\n';
+        cout<<"Grid_Size:"<<temp->grid->size<<'\n';
+        cout<<temp->grid->x_min<<' '<<temp->grid->x_max<<' '<<temp->grid->y_min<<' '<<temp->grid->y_max;
+        cout<<" :: x_min x_max y_min y_max\n";
         cout<<temp->grid->bucket->filename<<'\n';
         vector<Point> v(temp->grid->readGridsPointInBucket());
         for(Point p:v){
@@ -265,7 +221,6 @@ void GridList::display()
         }
         cout<<'\n';
         temp = temp->next;
-        i++;
     }
 }
 
@@ -287,7 +242,7 @@ int GridList::length()
 Node* GridList::search(Point p){
     Node* temp = head;
     Node* t=NULL;
-    cout<<"in searching"<<'\n';
+    // cout<<"in searching"<<'\n';
     while (temp)
     {
         if(temp->grid->is_present(p)){
@@ -305,9 +260,9 @@ void GridList::splitGrid(int value,string axis,Node* temp,bool create_new_bucket
             vector<Point> bucketPoints(temp->grid->bucket->readBucket());
             temp->grid->erase();
             vector<Point> l,r;
-            cout<<"In splitting x\n";
+            // cout<<"In splitting x\n";
             for(Point p:bucketPoints){
-                cout<<p.id<<' '<<p.x<<' '<<p.y<<'\n';
+                // cout<<p.id<<' '<<p.x<<' '<<p.y<<'\n';
                 if(temp->grid->is_present(p)){
                     if(p.x<=value) l.push_back(p);
                     else r.push_back(p);
@@ -336,9 +291,9 @@ void GridList::splitGrid(int value,string axis,Node* temp,bool create_new_bucket
             vector<Point> bucketPoints(temp->grid->bucket->readBucket());
             temp->grid->erase();
             vector<Point> l,r;
-            cout<<"In splitting y\n";
+            // cout<<"In splitting y\n";
             for(Point p:bucketPoints){
-                cout<<p.id<<' '<<p.x<<' '<<p.y<<'\n';
+                // cout<<p.id<<' '<<p.x<<' '<<p.y<<'\n';
                 if(temp->grid->is_present(p)){
                     if(p.y<=value) l.push_back(p);
                     else r.push_back(p);
@@ -372,6 +327,22 @@ void GridList::splitList(int value,string axis){
         temp=temp->next;
     }
     
+}
+
+vector<Point> GridList::rangeQuery(int x_min,int x_max,int y_min,int y_max){
+    Node* temp = head;
+    vector<Point> res;
+    while(temp){
+        if(temp->grid->is_overlapping(x_min,x_max,y_min,y_max)){
+            vector<Point> gridPoints(temp->grid->readGridsPointInBucket());
+            for(Point p:gridPoints){
+                if (p.x > x_min and p.x <= x_max and p.y > y_min and p.y <= y_max)
+                    res.push_back(p);
+            }
+        }
+        temp = temp->next;
+    }
+    return res;
 }
 
 inline int randomNumber(int n)
@@ -408,13 +379,14 @@ void insert(Point p,GridList* gridList){
         return;
     }
     node->grid->insert(p);
-    cout<<"Grid Id:"<<node->grid->id<<" Grid Size:"<<node->grid->size<<" Bucket Size:"<<node->grid->bucket->size<<'\n';
+    cout<<"Inserted Point\n";
+    cout<<"Point_Id:"<<p.id<<" Grid_Id:"<<node->grid->id<<" Grid_Size:"<<node->grid->size<<" Bucket_Size:"<<node->grid->bucket->size<<'\n';
     //checking conditions
     // 1. Grid Overflow
     if(node->grid->size>BUCKET_SIZE){
         // grid size is equal to bucket size, so split the grids through and throughout
         vector<Point> gridPoints(node->grid->readGridsPointInBucket());
-        for(Point t:gridPoints)cout<<t.x<<' '<<t.y<<'\n';
+        // for(Point t:gridPoints)cout<<t.x<<' '<<t.y<<'\n';
 
         string spread = find_spread(gridPoints);
         int value;
@@ -427,19 +399,20 @@ void insert(Point p,GridList* gridList){
             sort(gridPoints.begin(), gridPoints.end(), [](Point &a, Point &b) { return a.y < b.y; });
             value = gridPoints[half - 1].y;
         }
+        cout<<"Grid Overflow, Splitted at ";
         cout<<spread<<"="<<value<<'\n';
         //split the grid cell
         gridList->splitGrid(value,spread,node,true);
         //split through and through out
         gridList->splitList(value,spread);
-        gridList->display();
+        // gridList->display();
     }
     else if(node->grid->bucket->size>BUCKET_SIZE){
         /*
         2. Bucket Overflow
         2.1 Resolve, try to remove bucket sharing
         */
-        cout<<"Bucket sharing\n";
+        cout<<"Bucket Overflow, Sharing buckets\n";
         Bucket *bucket = new Bucket(FILE_ID);
         vector<Point> gridPoints(node->grid->removeGridPointsFromBucket());
         node->grid->bucket = bucket;
@@ -447,7 +420,7 @@ void insert(Point p,GridList* gridList){
             node->grid->insert(t);
         }
         cout<<"Done bucket sharing\n";
-        gridList->display();
+        // gridList->display();
     }
 }
 
@@ -458,21 +431,56 @@ void intialization(GridList* head){
 }
 
 int main(){
-    BUCKET_SIZE=3;
-    // cout<<"Enter bucket size :";
-    // cin>>bucketsize;
+    BUCKET_SIZE=100;
+    cout<<"Enter bucket size :";
+    cin>>BUCKET_SIZE;
     GridList* gridList = new GridList();
-    vector<Point> dataset(generateDataSet(10));
-    for(Point p : dataset){
-        cout<<p.x<<' '<<p.y<<'\n';
-    }
+    vector<Point> dataset(generateDataSet(3000));
     intialization(gridList);
-    cout<<gridList->size<<'\n';
-    for(Point p : dataset){
-        insert(p,gridList);
-        cout<<"GridList size after insertion:"<<gridList->size<<'\n';
+    cout<<"=======================================================\n";
+    int i=0;
+    while (true)
+    {
+        int choice;
+        cout << "Press 1: Visualize\nPress 2: Insert one point\nPress 3: Insert all point\nPress 4: Test Range Query\nPress 5 for Exit\n";
+        cin >> choice;
+        if (choice == 5){
+            break;
+        }
+        else if (choice == 1)
+        {
+            gridList->display();
+        }
+        else if (choice == 2)
+        {
+            if(i<dataset.size()){
+                insert(dataset[i],gridList);
+                i++;
+            }
+        }
+        else if(choice == 3)
+        {
+            for(;i<dataset.size();i++)
+            insert(dataset[i],gridList);
+        }
+        else if(choice == 4)
+        {
+            int x1=150,x2=200,y1=150,y2=200;
+            cout<<"Enter coordinates of rectangle in this format:- bottom-left-x, bottom-left-y, top-right-x, top-right-y\n";
+            cin>>x1>>y1>>x2>>y2;
+            vector<Point> answer(gridList->rangeQuery(x1,x2,y1,y2));
+            sort(answer.begin(),answer.end(),[](Point &a,Point &b){
+                return a.id<b.id;
+            });
+            cout<<"Range Query Results:-\n";
+            for(Point p : answer){
+                cout<<p.id<<' '<<p.x<<' '<<p.y<<'\n';
+            }
+            cout<<"Naive Approach Results:-\n";
+            for(Point p:dataset){
+                if (p.x > x1 and p.x <= x2 and p.y > y1 and p.y <= y2)
+                    cout<<p.id<<' '<<p.x<<' '<<p.y<<'\n';
+            }
+        }
     }
-    cout<<"===========\n";
-    gridList->display();
-    cout<<gridList->size<<'\n';
 }
